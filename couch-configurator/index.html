@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Couch Configurator</title>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: sans-serif;
+      }
+      canvas {
+        display: block;
+      }
+      #ui-container {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 15px;
+        border-radius: 10px;
+      }
+      .control-group {
+        margin-bottom: 10px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+      }
+      select {
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui-container">
+      <div class="control-group">
+        <label for="fabric-select">Fabric Material:</label>
+        <select id="fabric-select"></select>
+      </div>
+      <div class="control-group">
+        <label for="legs-select">Legs Material:</label>
+        <select id="legs-select"></select>
+      </div>
+    </div>
+    <canvas style="width: 100%; height: 100%" id="c"></canvas>
+
+    <!-- Import Three.js and necessary loaders -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from "three";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+      // ##### CONFIGURATION #####
+
+      // 1. Path to your main GLB model
+      const MODEL_PATH = "couch.glb";
+
+      // 2. The names of the meshes for each material group
+      const FABRIC_MESH_NAMES = [
+        "S77-2SDR_Body",
+        "S77-1CL_Body",
+        "S77-1CL_Plane",
+        "S77-2SDR_Plane",
+      ];
+      const LEGS_MESH_NAMES = ["S77-1CL_Legs", "S77-2SDR_Legs"];
+
+      // 3. The repeating scale for all textures
+      const TEXTURE_SCALE = 0.06;
+
+      // 4. Define your available textures here. Add as many as you want!
+      const FABRIC_OPTIONS = [
+        {
+          name: "Cloud Fabric",
+          maps: {
+            color:
+              "textures/fabrics/twinbru_Sabato_28-Cloud_78bc31df720040f98507df3a952a4264/twinbru_Sabato_28-Cloud_78bc31df720040f98507df3a952a4264_col.jpg",
+            roughness:
+              "textures/fabrics/twinbru_Sabato_28-Cloud_78bc31df720040f98507df3a952a4264/twinbru_Sabato_28-Cloud_78bc31df720040f98507df3a952a4264_rough.jpg",
+            normal:
+              "textures/fabrics/twinbru_Sabato_28-Cloud_78bc31df720040f98507df3a952a4264/twinbru_Sabato_28-Cloud_78bc31df720040f98507df3a952a4264_nrm.jpg",
+            metalness:
+              "textures/fabrics/twinbru_Sabato_28-Cloud_78bc31df720040f98507df3a952a4264/twinbru_Sabato_28-Cloud_78bc31df720040f98507df3a952a4264_met.jpg",
+          },
+        },
+        {
+          name: "Rough Sofa Fabric",
+          maps: {
+            color:
+              "textures/fabrics/rough-sofa-fabric-bl/rough-sofa-fabric_albedo.png",
+            roughness:
+              "textures/fabrics/rough-sofa-fabric-bl/rough-sofa-fabric_roughness.png",
+            normal:
+              "textures/fabrics/rough-sofa-fabric-bl/rough-sofa-fabric_normal-ogl.png",
+            metalness:
+              "textures/fabrics/rough-sofa-fabric-bl/rough-sofa-fabric_metallic.png",
+          },
+        },
+      ];
+
+      const LEG_OPTIONS = [
+        {
+          name: "Rosewood Veneer",
+          maps: {
+            color:
+              "textures/legs/rosewood_veneer1_4k.blend/rosewood_veneer1_diff_4k.jpg",
+          },
+        },
+        {
+          name: "Polished Metal",
+          maps: {
+            color: "textures/legs/PolishedMetal/color.jpg",
+            roughness: "textures/legs/PolishedMetal/roughness.jpg",
+            metalness: "textures/legs/PolishedMetal/metalness.jpg",
+          },
+        },
+      ];
+
+      // ##### SCRIPT - DO NOT EDIT BELOW #####
+
+      const canvas = document.querySelector("#c");
+      const renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xffffff);
+
+      const camera = new THREE.PerspectiveCamera(
+        50,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+      );
+      camera.position.set(3, 2, 3);
+
+      const controls = new OrbitControls(camera, canvas);
+      controls.target.set(0, 0.5, 0);
+      controls.update();
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+      directionalLight.position.set(3, 5, 2);
+      scene.add(directionalLight);
+
+      const textureLoader = new THREE.TextureLoader();
+      let fabricMeshes = [];
+      let legMeshes = [];
+
+      function createPbrMaterial(mapPaths) {
+        const material = new THREE.MeshStandardMaterial();
+        const applyTexture = (mapType, path) => {
+          const texture = textureLoader.load(path);
+          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+          texture.repeat.set(TEXTURE_SCALE, TEXTURE_SCALE);
+          texture.flipY = false;
+          if (mapType === "color") {
+            texture.colorSpace = THREE.SRGBColorSpace;
+            material.map = texture;
+          } else if (mapType === "roughness") {
+            material.roughnessMap = texture;
+          } else if (mapType === "normal") {
+            material.normalMap = texture;
+          } else if (mapType === "metalness") {
+            material.metalnessMap = texture;
+          }
+        };
+        if (mapPaths.color) applyTexture("color", mapPaths.color);
+        if (mapPaths.roughness) applyTexture("roughness", mapPaths.roughness);
+        if (mapPaths.normal) applyTexture("normal", mapPaths.normal);
+        if (mapPaths.metalness) applyTexture("metalness", mapPaths.metalness);
+        return material;
+      }
+
+      // <<< NEW CODE HERE (1/2) >>>
+      // This function calculates the model's size and moves the camera to frame it perfectly.
+      function frameObject(objectToFrame) {
+        const box = new THREE.Box3().setFromObject(objectToFrame);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+
+        const maxSize = Math.max(size.x, size.y, size.z);
+        const fitHeightDistance =
+          maxSize / (2 * Math.tan((camera.fov * Math.PI) / 360));
+        const fitWidthDistance = fitHeightDistance / camera.aspect;
+        const distance = 1.5 * Math.max(fitHeightDistance, fitWidthDistance); // add 50% padding
+
+        const direction = controls.target
+          .clone()
+          .sub(camera.position)
+          .normalize()
+          .multiplyScalar(distance);
+
+        camera.position.copy(center).sub(direction);
+        controls.target.copy(center);
+        controls.update();
+      }
+
+      const gltfLoader = new GLTFLoader();
+      gltfLoader.load(MODEL_PATH, (gltf) => {
+        const model = gltf.scene;
+        model.traverse((child) => {
+          if (child.isMesh) {
+            if (FABRIC_MESH_NAMES.includes(child.name)) {
+              fabricMeshes.push(child);
+            }
+            if (LEGS_MESH_NAMES.includes(child.name)) {
+              legMeshes.push(child);
+            }
+          }
+        });
+        scene.add(model);
+        updateMaterials();
+
+        // <<< NEW CODE HERE (2/2) >>>
+        // Call the function to frame the model after it's loaded.
+        frameObject(model);
+      });
+
+      const fabricSelect = document.getElementById("fabric-select");
+      const legsSelect = document.getElementById("legs-select");
+      FABRIC_OPTIONS.forEach((opt) => {
+        const option = document.createElement("option");
+        option.value = opt.name;
+        option.textContent = opt.name;
+        fabricSelect.appendChild(option);
+      });
+      LEG_OPTIONS.forEach((opt) => {
+        const option = document.createElement("option");
+        option.value = opt.name;
+        option.textContent = opt.name;
+        legsSelect.appendChild(option);
+      });
+
+      function updateMaterials() {
+        const selectedFabricName = fabricSelect.value;
+        const selectedLegsName = legsSelect.value;
+        const fabricData = FABRIC_OPTIONS.find(
+          (opt) => opt.name === selectedFabricName
+        );
+        const legsData = LEG_OPTIONS.find(
+          (opt) => opt.name === selectedLegsName
+        );
+        if (fabricData) {
+          const newFabricMat = createPbrMaterial(fabricData.maps);
+          fabricMeshes.forEach((mesh) => (mesh.material = newFabricMat));
+        }
+        if (legsData) {
+          const newLegsMat = createPbrMaterial(legsData.maps);
+          legMeshes.forEach((mesh) => (mesh.material = newLegsMat));
+        }
+      }
+
+      fabricSelect.addEventListener("change", updateMaterials);
+      legsSelect.addEventListener("change", updateMaterials);
+
+      function resizeRendererToDisplaySize(renderer) {
+        const canvas = renderer.domElement;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        const needResize = canvas.width !== width || canvas.height !== height;
+        if (needResize) {
+          renderer.setSize(width, height, false);
+        }
+        return needResize;
+      }
+      function animate() {
+        if (resizeRendererToDisplaySize(renderer)) {
+          const canvas = renderer.domElement;
+          camera.aspect = canvas.clientWidth / canvas.clientHeight;
+          camera.updateProjectionMatrix();
+        }
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      }
+      requestAnimationFrame(animate);
+    </script>
+  </body>
+</html>
