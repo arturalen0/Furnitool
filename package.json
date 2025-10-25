@@ -3,10 +3,11 @@
   "version": "1.0.0",
   "description": "3D Couch Configurator with AR Support",
   "main": "index.html",
+  "type": "module",
   "scripts": {
     "dev": "python3 -m http.server 8000",
-    "build": "echo 'Static site - no build needed'",
-    "start": "echo 'Static site deployed'"
+    "build": "echo 'No build required - static site'",
+    "start": "echo 'Static site ready'"
   },
   "keywords": [
     "3d",
@@ -14,10 +15,9 @@
     "ar",
     "furniture",
     "threejs",
-    "webxr"
+    "webxr",
+    "static"
   ],
   "author": "Your Name",
-  "license": "MIT",
-  "dependencies": {},
-  "devDependencies": {}
+  "license": "MIT"
 }
