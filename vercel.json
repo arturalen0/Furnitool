@@ -1,0 +1,36 @@
+{
+  "rewrites": [
+    {
+      "source": "/ar",
+      "destination": "/ar-viewer.html"
+    },
+    {
+      "source": "/model-viewer",
+      "destination": "/model-viewer-version.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)\\.(glb|gltf)$",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Content-Type",
+          "value": "model/gltf-binary"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)\\.(jpg|jpeg|png|webp)$",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}
