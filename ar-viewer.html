@@ -8,14 +8,6 @@
       type="module"
       src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
     ></script>
-    <!-- Three.js for material manipulation -->
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-        }
-      }
-    </script>
     <style>
       * {
         margin: 0;
@@ -41,24 +33,42 @@
         top: 20px;
         left: 20px;
         right: 20px;
-        background: rgba(0, 0, 0, 0.8);
+        background: rgba(0, 0, 0, 0.9);
         color: white;
-        padding: 15px;
+        padding: 20px;
         border-radius: 12px;
         backdrop-filter: blur(10px);
         z-index: 100;
-        text-align: center;
+        text-align: left;
+        border: 2px solid rgba(255, 255, 255, 0.2);
       }
 
       #config-info h2 {
-        font-size: 18px;
-        margin-bottom: 10px;
+        font-size: 20px;
+        margin-bottom: 15px;
+        text-align: center;
+        color: #fff;
       }
 
-      #config-info p {
-        font-size: 14px;
-        opacity: 0.9;
-        margin: 5px 0;
+      .config-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 10px 0;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+      }
+
+      .config-label {
+        font-weight: 600;
+        color: #ccc;
+      }
+
+      .config-value {
+        font-weight: 700;
+        color: #fff;
+        text-align: right;
       }
 
       .ar-button {
@@ -66,27 +76,27 @@
         bottom: 30px;
         left: 50%;
         transform: translateX(-50%);
-        background: #007aff;
+        background: linear-gradient(135deg, #007aff, #0056cc);
         color: white;
         border: none;
-        padding: 16px 32px;
-        border-radius: 25px;
-        font-size: 16px;
-        font-weight: 600;
+        padding: 18px 36px;
+        border-radius: 30px;
+        font-size: 18px;
+        font-weight: 700;
         cursor: pointer;
-        box-shadow: 0 4px 20px rgba(0, 122, 255, 0.4);
+        box-shadow: 0 6px 25px rgba(0, 122, 255, 0.4);
         transition: all 0.3s ease;
         z-index: 100;
       }
 
       .ar-button:hover {
-        background: #0056cc;
-        transform: translateX(-50%) translateY(-2px);
-        box-shadow: 0 6px 25px rgba(0, 122, 255, 0.5);
+        background: linear-gradient(135deg, #0056cc, #003d99);
+        transform: translateX(-50%) translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 122, 255, 0.5);
       }
 
       .ar-button:active {
-        transform: translateX(-50%) translateY(0px);
+        transform: translateX(-50%) translateY(-1px);
       }
 
       #loading {
@@ -100,13 +110,13 @@
       }
 
       .spinner {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         border: 4px solid rgba(255, 255, 255, 0.3);
         border-top: 4px solid white;
         border-radius: 50%;
         animation: spin 1s linear infinite;
-        margin: 0 auto 15px;
+        margin: 0 auto 20px;
       }
 
       @keyframes spin {
@@ -131,12 +141,12 @@
       .feature-btn {
         background: rgba(255, 255, 255, 0.9);
         border: none;
-        padding: 10px;
+        padding: 12px;
         border-radius: 8px;
         cursor: pointer;
-        font-size: 12px;
+        font-size: 14px;
         font-weight: 600;
-        min-width: 80px;
+        min-width: 90px;
         backdrop-filter: blur(10px);
         transition: all 0.3s ease;
       }
@@ -144,6 +154,17 @@
       .feature-btn:hover {
         background: rgba(255, 255, 255, 1);
         transform: scale(1.05);
+      }
+
+      .material-note {
+        margin-top: 15px;
+        padding: 12px;
+        background: rgba(255, 193, 7, 0.2);
+        border: 1px solid rgba(255, 193, 7, 0.4);
+        border-radius: 8px;
+        font-size: 13px;
+        text-align: center;
+        color: #ffc107;
       }
     </style>
   </head>
@@ -154,10 +175,25 @@
     </div>
 
     <div id="config-info" style="display: none">
-      <h2>Your Configured Couch</h2>
-      <p id="fabric-info">Fabric: Loading...</p>
-      <p id="stitch-info">Stitch: Loading...</p>
-      <p id="legs-info">Legs: Loading...</p>
+      <h2>🛋️ Your Couch Configuration</h2>
+      <div class="config-item">
+        <span class="config-label">Fabric Material:</span>
+        <span class="config-value" id="fabric-value">Loading...</span>
+      </div>
+      <div class="config-item">
+        <span class="config-label">Stitch Color:</span>
+        <span class="config-value" id="stitch-value">Loading...</span>
+      </div>
+      <div class="config-item">
+        <span class="config-label">Legs Material:</span>
+        <span class="config-value" id="legs-value">Loading...</span>
+      </div>
+      <div class="material-note">
+        <strong>📱 AR Preview:</strong> This shows the couch size and
+        placement.<br />
+        <strong>🎨 Full Materials:</strong> View on desktop for detailed
+        textures.
+      </div>
     </div>
 
     <model-viewer
@@ -180,7 +216,7 @@
       loading="eager"
       reveal="auto"
     >
-      <button slot="ar-button" class="ar-button">👁️ View in AR</button>
+      <button slot="ar-button" class="ar-button">👁️ View in Your Space</button>
     </model-viewer>
 
     <div class="feature-buttons">
@@ -202,25 +238,20 @@
         legs: urlParams.get("legs") || "Rosewood Veneer",
       };
 
-      // Update configuration display
-      document.getElementById(
-        "fabric-info"
-      ).textContent = `Fabric: ${config.fabric}`;
-      document.getElementById(
-        "stitch-info"
-      ).textContent = `Stitch: ${config.stitch}`;
-      document.getElementById("legs-info").textContent = `Legs: ${config.legs}`;
+      console.log("AR Viewer loaded with config:", config);
+
+      // Update configuration display immediately
+      document.getElementById("fabric-value").textContent = config.fabric;
+      document.getElementById("stitch-value").textContent = config.stitch;
+      document.getElementById("legs-value").textContent = config.legs;
 
       // Show configuration info
       configInfo.style.display = "block";
 
       // Handle model loading
       modelViewer.addEventListener("load", () => {
-        console.log("AR model loaded with config:", config);
+        console.log("AR model loaded successfully");
         loadingDiv.style.display = "none";
-
-        // Apply configuration (in a real implementation, you'd modify materials here)
-        applyConfiguration(config);
       });
 
       modelViewer.addEventListener("error", (error) => {
@@ -228,175 +259,6 @@
         loadingDiv.innerHTML =
           '<p style="color: red;">Failed to load 3D model</p>';
       });
-
-      async function applyConfiguration(config) {
-        console.log("Applying configuration:", config);
-
-        try {
-          // Wait for model-viewer to be ready
-          await modelViewer.updateComplete;
-
-          // Access the Three.js scene from model-viewer
-          const scene = modelViewer.model;
-          if (!scene) {
-            console.warn("Model not loaded yet, retrying...");
-            setTimeout(() => applyConfiguration(config), 1000);
-            return;
-          }
-
-          // Import Three.js dynamically
-          const THREE = await import("three");
-          const textureLoader = new THREE.TextureLoader();
-
-          // Material configuration mapping
-          const fabricTextures = {
-            Cloud:
-              "textures/fabrics/twinbru_Sabato_28-Cloud_78bc31df720040f98507df3a952a4264/",
-            Limestone:
-              "textures/fabrics/twinbru_Sabato_01-Limestone_dcdf6528525142e98efbccff9cd72c74/",
-            Flax: "textures/fabrics/twinbru_Sabato_06-Flax_7932749150ae466099eb91ff8fc2909c/",
-            Bonbon:
-              "textures/fabrics/twinbru_Sabato_17-Bonbon_5f4a348fcb2444bb91a9fcb93c3de7c6/",
-            "Rough Sofa Fabric": "textures/fabrics/rough-sofa-fabric-bl/",
-          };
-
-          const legTextures = {
-            "Rosewood Veneer": "textures/legs/rosewood_veneer1_4k.blend/",
-            "Polished Metal": "textures/legs/PolishedMetal/",
-          };
-
-          // Find and update materials
-          scene.traverse((child) => {
-            if (child.isMesh) {
-              const meshName = child.name.toLowerCase();
-
-              // Apply fabric materials to body and plane meshes
-              if (meshName.includes("body") || meshName.includes("plane")) {
-                const fabricPath = fabricTextures[config.fabric];
-                if (fabricPath) {
-                  updateMeshMaterial(child, fabricPath, textureLoader, THREE);
-                }
-              }
-
-              // Apply stitch materials
-              else if (meshName.includes("stitch")) {
-                const stitchPath = fabricTextures[config.stitch];
-                if (stitchPath) {
-                  updateMeshMaterial(child, stitchPath, textureLoader, THREE);
-                }
-              }
-
-              // Apply leg materials
-              else if (meshName.includes("legs")) {
-                const legPath = legTextures[config.legs];
-                if (legPath) {
-                  updateMeshMaterial(child, legPath, textureLoader, THREE);
-                }
-              }
-            }
-          });
-
-          console.log("Materials applied successfully!");
-        } catch (error) {
-          console.error("Error applying configuration:", error);
-        }
-      }
-
-      function updateMeshMaterial(mesh, texturePath, textureLoader, THREE) {
-        try {
-          // Create new PBR material
-          const material = new THREE.MeshStandardMaterial();
-
-          // Load textures based on available files
-          const baseUrl = window.location.origin + "/";
-
-          // Try to load color texture
-          if (texturePath.includes("rough-sofa-fabric-bl")) {
-            // Handle the PNG-based texture set
-            textureLoader.load(
-              baseUrl + texturePath + "rough-sofa-fabric_albedo.png",
-              (texture) => {
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set(0.06, 0.06);
-                texture.flipY = false;
-                material.map = texture;
-                mesh.material = material;
-              }
-            );
-
-            textureLoader.load(
-              baseUrl + texturePath + "rough-sofa-fabric_roughness.png",
-              (texture) => {
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set(0.06, 0.06);
-                texture.flipY = false;
-                material.roughnessMap = texture;
-              }
-            );
-
-            textureLoader.load(
-              baseUrl + texturePath + "rough-sofa-fabric_normal-ogl.png",
-              (texture) => {
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set(0.06, 0.06);
-                texture.flipY = false;
-                material.normalMap = texture;
-              }
-            );
-          } else if (texturePath.includes("rosewood_veneer1_4k.blend")) {
-            // Handle the wood texture
-            textureLoader.load(
-              baseUrl + texturePath + "rosewood_veneer1_diff_4k.jpg",
-              (texture) => {
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set(0.06, 0.06);
-                texture.flipY = false;
-                material.map = texture;
-                mesh.material = material;
-              }
-            );
-          } else {
-            // Handle the standard JPG-based texture sets
-            const suffix = texturePath
-              .split("/")
-              .pop()
-              .replace(/[^a-zA-Z0-9]/g, "_");
-
-            textureLoader.load(
-              baseUrl + texturePath + suffix + "_col.jpg",
-              (texture) => {
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set(0.06, 0.06);
-                texture.flipY = false;
-                material.map = texture;
-                mesh.material = material;
-              }
-            );
-
-            textureLoader.load(
-              baseUrl + texturePath + suffix + "_rough.jpg",
-              (texture) => {
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set(0.06, 0.06);
-                texture.flipY = false;
-                material.roughnessMap = texture;
-              }
-            );
-
-            textureLoader.load(
-              baseUrl + texturePath + suffix + "_nrm.jpg",
-              (texture) => {
-                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-                texture.repeat.set(0.06, 0.06);
-                texture.flipY = false;
-                material.normalMap = texture;
-              }
-            );
-          }
-        } catch (error) {
-          console.error("Error updating mesh material:", error);
-        }
-      }
 
       function toggleAutoRotate() {
         modelViewer.autoRotate = !modelViewer.autoRotate;
@@ -422,11 +284,11 @@
         }
       }
 
-      // Auto-hide config info after 5 seconds
+      // Auto-hide config info after 8 seconds
       setTimeout(() => {
         configInfo.style.opacity = "0";
         configInfo.style.transition = "opacity 0.5s ease";
-      }, 5000);
+      }, 8000);
 
       // Show config info on tap
       document.addEventListener("click", () => {
@@ -434,7 +296,7 @@
           configInfo.style.opacity = "1";
           setTimeout(() => {
             configInfo.style.opacity = "0";
-          }, 3000);
+          }, 4000);
         }
       });
     </script>
