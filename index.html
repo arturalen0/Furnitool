@@ -214,7 +214,7 @@
       let legsMeshes = []; // Meshes with "Legs" in name
 
       // 3. The repeating scale for all textures
-      const TEXTURE_SCALE = 0.06;
+      const TEXTURE_SCALE = 0.05;
 
       // 4. Define your available textures here. Add as many as you want!
       const FABRIC_OPTIONS = [
@@ -291,6 +291,28 @@
           maps: {
             color:
               "textures/legs/rosewood_veneer1_4k.blend/rosewood_veneer1_diff_4k.jpg",
+            ao: "textures/legs/rosewood_veneer1_4k.blend/rosewood_veneer1_ao_4k.jpg",
+          },
+        },
+        {
+          name: "Oak Veneer",
+          maps: {
+            color:
+              "textures/legs/oak_veneer_01_4k/textures/oak_veneer_01_diff_4k.jpg",
+            roughness:
+              "textures/legs/oak_veneer_01_4k/textures/oak_veneer_01_rough_4k.exr",
+            normal:
+              "textures/legs/oak_veneer_01_4k/textures/oak_veneer_01_nor_gl_4k.exr",
+            ao: "textures/legs/oak_veneer_01_4k/textures/oak_veneer_01_ao_4k.jpg",
+          },
+        },
+        {
+          name: "Plywood",
+          maps: {
+            color: "textures/legs/plywood_4k/textures/plywood_diff_4k.jpg",
+            roughness: "textures/legs/plywood_4k/textures/plywood_rough_4k.exr",
+            normal: "textures/legs/plywood_4k/textures/plywood_nor_gl_4k.exr",
+            ao: "textures/legs/plywood_4k/textures/plywood_ao_4k.jpg",
           },
         },
         {
@@ -379,96 +401,60 @@
 
       controls.update();
 
-      // Professional 3-point lighting setup for furniture showcase
+      // Omnidirectional lighting setup for even illumination from all sides
 
-      // 1. Key Light - Main directional light from front-right with ultra-high quality shadows
-      const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
-      keyLight.position.set(5, 8, 4);
-      keyLight.castShadow = true;
-      keyLight.shadow.mapSize.width = 4096; // Ultra-high resolution shadows
-      keyLight.shadow.mapSize.height = 4096;
-      keyLight.shadow.camera.near = 0.1;
-      keyLight.shadow.camera.far = 100;
-      keyLight.shadow.camera.left = -15;
-      keyLight.shadow.camera.right = 15;
-      keyLight.shadow.camera.top = 15;
-      keyLight.shadow.camera.bottom = -15;
-      keyLight.shadow.radius = 8; // Soft shadow edges
-      keyLight.shadow.blurSamples = 25; // High quality blur
-      scene.add(keyLight);
-
-      // 2. Fill Light - Softer light from front-left with subtle shadows
-      const fillLight = new THREE.DirectionalLight(0xffffff, 0.7);
-      fillLight.position.set(-4, 5, 3);
-      fillLight.castShadow = true;
-      fillLight.shadow.mapSize.width = 2048;
-      fillLight.shadow.mapSize.height = 2048;
-      fillLight.shadow.camera.near = 0.1;
-      fillLight.shadow.camera.far = 50;
-      fillLight.shadow.camera.left = -10;
-      fillLight.shadow.camera.right = 10;
-      fillLight.shadow.camera.top = 10;
-      fillLight.shadow.camera.bottom = -10;
-      fillLight.shadow.radius = 4;
-      scene.add(fillLight);
-
-      // 3. Rim Light - Back light to create dramatic edge definition
-      const rimLight = new THREE.DirectionalLight(0xffffff, 1.0);
-      rimLight.position.set(-3, 4, -6);
-      rimLight.castShadow = true;
-      rimLight.shadow.mapSize.width = 2048;
-      rimLight.shadow.mapSize.height = 2048;
-      rimLight.shadow.camera.near = 0.1;
-      rimLight.shadow.camera.far = 50;
-      rimLight.shadow.radius = 6;
-      scene.add(rimLight);
-
-      // 4. Ambient Light - Soft overall illumination
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+      // 1. Strong Ambient Light - Base illumination from all directions
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
       scene.add(ambientLight);
 
-      // 5. Environment Light - Hemisphere light for natural feel
-      const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.4);
+      // 2. Hemisphere Light - Natural sky/ground lighting
+      const hemiLight = new THREE.HemisphereLight(0xffffff, 0xcccccc, 0.6);
       hemiLight.position.set(0, 20, 0);
       scene.add(hemiLight);
 
-      // 6. Accent Lights - Dramatic spotlights for material highlights
-      const spotLight1 = new THREE.SpotLight(0xffffff, 0.8);
-      spotLight1.position.set(3, 6, 5);
-      spotLight1.angle = Math.PI / 5;
-      spotLight1.penumbra = 0.4;
-      spotLight1.decay = 1.5;
-      spotLight1.distance = 25;
-      spotLight1.castShadow = true;
-      spotLight1.shadow.mapSize.width = 1024;
-      spotLight1.shadow.mapSize.height = 1024;
-      spotLight1.shadow.radius = 10;
-      scene.add(spotLight1);
+      // 3. Multiple Directional Lights - Even coverage from 6 directions (cube lighting)
+      const lightIntensity = 0.4;
+      const lightDistance = 10;
 
-      const spotLight2 = new THREE.SpotLight(0xffffff, 0.6);
-      spotLight2.position.set(-3, 4, 5);
-      spotLight2.angle = Math.PI / 6;
-      spotLight2.penumbra = 0.5;
-      spotLight2.decay = 1.8;
-      spotLight2.distance = 20;
-      spotLight2.castShadow = true;
-      spotLight2.shadow.mapSize.width = 1024;
-      spotLight2.shadow.mapSize.height = 1024;
-      spotLight2.shadow.radius = 8;
-      scene.add(spotLight2);
+      // Front light
+      const frontLight = new THREE.DirectionalLight(0xffffff, lightIntensity);
+      frontLight.position.set(0, 5, lightDistance);
+      scene.add(frontLight);
 
-      // 7. Additional dramatic accent light from above
-      const topSpotLight = new THREE.SpotLight(0xffffff, 0.4);
-      topSpotLight.position.set(0, 8, 0);
-      topSpotLight.angle = Math.PI / 4;
-      topSpotLight.penumbra = 0.6;
-      topSpotLight.decay = 2;
-      topSpotLight.distance = 30;
-      topSpotLight.castShadow = true;
-      topSpotLight.shadow.mapSize.width = 2048;
-      topSpotLight.shadow.mapSize.height = 2048;
-      topSpotLight.shadow.radius = 12;
-      scene.add(topSpotLight);
+      // Back light
+      const backLight = new THREE.DirectionalLight(0xffffff, lightIntensity);
+      backLight.position.set(0, 5, -lightDistance);
+      scene.add(backLight);
+
+      // Left light
+      const leftLight = new THREE.DirectionalLight(0xffffff, lightIntensity);
+      leftLight.position.set(-lightDistance, 5, 0);
+      scene.add(leftLight);
+
+      // Right light
+      const rightLight = new THREE.DirectionalLight(0xffffff, lightIntensity);
+      rightLight.position.set(lightDistance, 5, 0);
+      scene.add(rightLight);
+
+      // Top light (with subtle shadows for depth)
+      const topLight = new THREE.DirectionalLight(0xffffff, 0.5);
+      topLight.position.set(0, lightDistance, 0);
+      topLight.castShadow = true;
+      topLight.shadow.mapSize.width = 2048;
+      topLight.shadow.mapSize.height = 2048;
+      topLight.shadow.camera.near = 0.1;
+      topLight.shadow.camera.far = 50;
+      topLight.shadow.camera.left = -10;
+      topLight.shadow.camera.right = 10;
+      topLight.shadow.camera.top = 10;
+      topLight.shadow.camera.bottom = -10;
+      topLight.shadow.radius = 8;
+      scene.add(topLight);
+
+      // Bottom light (subtle fill from below)
+      const bottomLight = new THREE.DirectionalLight(0xffffff, 0.2);
+      bottomLight.position.set(0, -5, 0);
+      scene.add(bottomLight);
 
       // Add an enhanced ground plane with subtle reflective properties
       const groundGeometry = new THREE.PlaneGeometry(30, 30);
@@ -505,28 +491,39 @@
 
       const textureLoader = new THREE.TextureLoader();
 
-      function createPbrMaterial(mapPaths) {
-        const material = new THREE.MeshStandardMaterial();
-        const applyTexture = (mapType, path) => {
-          const texture = textureLoader.load(path);
+      function createFabricMaterial(mapPaths) {
+        // Use MeshLambertMaterial for completely natural matte fabric
+        const material = new THREE.MeshLambertMaterial();
+
+        // Only apply color texture for pure matte fabric appearance
+        if (mapPaths.color) {
+          const texture = textureLoader.load(mapPaths.color);
           texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
           texture.repeat.set(TEXTURE_SCALE, TEXTURE_SCALE);
           texture.flipY = false;
-          if (mapType === "color") {
-            texture.colorSpace = THREE.SRGBColorSpace;
-            material.map = texture;
-          } else if (mapType === "roughness") {
-            material.roughnessMap = texture;
-          } else if (mapType === "normal") {
-            material.normalMap = texture;
-          } else if (mapType === "metalness") {
-            material.metalnessMap = texture;
-          }
-        };
-        if (mapPaths.color) applyTexture("color", mapPaths.color);
-        if (mapPaths.roughness) applyTexture("roughness", mapPaths.roughness);
-        if (mapPaths.normal) applyTexture("normal", mapPaths.normal);
-        if (mapPaths.metalness) applyTexture("metalness", mapPaths.metalness);
+          texture.colorSpace = THREE.SRGBColorSpace;
+          material.map = texture;
+        }
+
+        // Lambert material creates completely natural matte appearance with no reflections
+        return material;
+      }
+
+      function createLegMaterial(mapPaths) {
+        // Use MeshLambertMaterial for completely natural matte legs too
+        const material = new THREE.MeshLambertMaterial();
+
+        // Only apply color texture for pure matte leg appearance
+        if (mapPaths.color) {
+          const texture = textureLoader.load(mapPaths.color);
+          texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+          texture.repeat.set(TEXTURE_SCALE, TEXTURE_SCALE);
+          texture.flipY = false;
+          texture.colorSpace = THREE.SRGBColorSpace;
+          material.map = texture;
+        }
+
+        // Lambert material creates completely natural matte appearance for legs too
         return material;
       }
 
@@ -710,24 +707,24 @@
           (opt) => opt.name === selectedLegsName
         );
 
-        // Apply fabric material to body meshes
+        // Apply fabric material to body meshes (matte, non-reflective)
         if (fabricData && bodyMeshes.length > 0) {
-          const bodyMaterial = createPbrMaterial(fabricData.maps);
+          const bodyMaterial = createFabricMaterial(fabricData.maps);
           bodyMeshes.forEach((mesh) => (mesh.material = bodyMaterial));
 
           // Plane meshes follow the same color as body
           planeMeshes.forEach((mesh) => (mesh.material = bodyMaterial));
         }
 
-        // Apply stitch material (separate fabric choice)
+        // Apply stitch material (also fabric, so matte)
         if (stitchData && stitchMeshes.length > 0) {
-          const stitchMaterial = createPbrMaterial(stitchData.maps);
+          const stitchMaterial = createFabricMaterial(stitchData.maps);
           stitchMeshes.forEach((mesh) => (mesh.material = stitchMaterial));
         }
 
-        // Apply legs material
+        // Apply legs material (can be more reflective for wood/metal)
         if (legsData && legsMeshes.length > 0) {
-          const legsMaterial = createPbrMaterial(legsData.maps);
+          const legsMaterial = createLegMaterial(legsData.maps);
           legsMeshes.forEach((mesh) => (mesh.material = legsMaterial));
         }
       }
