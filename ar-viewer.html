@@ -8,6 +8,14 @@
       type="module"
       src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
     ></script>
+    <!-- Three.js for material manipulation -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+        }
+      }
+    </script>
     <style>
       * {
         margin: 0;
@@ -221,17 +229,173 @@
           '<p style="color: red;">Failed to load 3D model</p>';
       });
 
-      function applyConfiguration(config) {
-        // Note: Model-viewer has limited material editing capabilities
-        // In a production app, you might:
-        // 1. Have pre-configured GLB files for each combination
-        // 2. Use Three.js underneath model-viewer for material changes
-        // 3. Generate the GLB server-side with the correct materials
-
+      async function applyConfiguration(config) {
         console.log("Applying configuration:", config);
 
-        // For now, we'll just log the configuration
-        // In a real implementation, you'd modify the model's materials here
+        try {
+          // Wait for model-viewer to be ready
+          await modelViewer.updateComplete;
+
+          // Access the Three.js scene from model-viewer
+          const scene = modelViewer.model;
+          if (!scene) {
+            console.warn("Model not loaded yet, retrying...");
+            setTimeout(() => applyConfiguration(config), 1000);
+            return;
+          }
+
+          // Import Three.js dynamically
+          const THREE = await import("three");
+          const textureLoader = new THREE.TextureLoader();
+
+          // Material configuration mapping
+          const fabricTextures = {
+            Cloud:
+              "textures/fabrics/twinbru_Sabato_28-Cloud_78bc31df720040f98507df3a952a4264/",
+            Limestone:
+              "textures/fabrics/twinbru_Sabato_01-Limestone_dcdf6528525142e98efbccff9cd72c74/",
+            Flax: "textures/fabrics/twinbru_Sabato_06-Flax_7932749150ae466099eb91ff8fc2909c/",
+            Bonbon:
+              "textures/fabrics/twinbru_Sabato_17-Bonbon_5f4a348fcb2444bb91a9fcb93c3de7c6/",
+            "Rough Sofa Fabric": "textures/fabrics/rough-sofa-fabric-bl/",
+          };
+
+          const legTextures = {
+            "Rosewood Veneer": "textures/legs/rosewood_veneer1_4k.blend/",
+            "Polished Metal": "textures/legs/PolishedMetal/",
+          };
+
+          // Find and update materials
+          scene.traverse((child) => {
+            if (child.isMesh) {
+              const meshName = child.name.toLowerCase();
+
+              // Apply fabric materials to body and plane meshes
+              if (meshName.includes("body") || meshName.includes("plane")) {
+                const fabricPath = fabricTextures[config.fabric];
+                if (fabricPath) {
+                  updateMeshMaterial(child, fabricPath, textureLoader, THREE);
+                }
+              }
+
+              // Apply stitch materials
+              else if (meshName.includes("stitch")) {
+                const stitchPath = fabricTextures[config.stitch];
+                if (stitchPath) {
+                  updateMeshMaterial(child, stitchPath, textureLoader, THREE);
+                }
+              }
+
+              // Apply leg materials
+              else if (meshName.includes("legs")) {
+                const legPath = legTextures[config.legs];
+                if (legPath) {
+                  updateMeshMaterial(child, legPath, textureLoader, THREE);
+                }
+              }
+            }
+          });
+
+          console.log("Materials applied successfully!");
+        } catch (error) {
+          console.error("Error applying configuration:", error);
+        }
+      }
+
+      function updateMeshMaterial(mesh, texturePath, textureLoader, THREE) {
+        try {
+          // Create new PBR material
+          const material = new THREE.MeshStandardMaterial();
+
+          // Load textures based on available files
+          const baseUrl = window.location.origin + "/";
+
+          // Try to load color texture
+          if (texturePath.includes("rough-sofa-fabric-bl")) {
+            // Handle the PNG-based texture set
+            textureLoader.load(
+              baseUrl + texturePath + "rough-sofa-fabric_albedo.png",
+              (texture) => {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(0.06, 0.06);
+                texture.flipY = false;
+                material.map = texture;
+                mesh.material = material;
+              }
+            );
+
+            textureLoader.load(
+              baseUrl + texturePath + "rough-sofa-fabric_roughness.png",
+              (texture) => {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(0.06, 0.06);
+                texture.flipY = false;
+                material.roughnessMap = texture;
+              }
+            );
+
+            textureLoader.load(
+              baseUrl + texturePath + "rough-sofa-fabric_normal-ogl.png",
+              (texture) => {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(0.06, 0.06);
+                texture.flipY = false;
+                material.normalMap = texture;
+              }
+            );
+          } else if (texturePath.includes("rosewood_veneer1_4k.blend")) {
+            // Handle the wood texture
+            textureLoader.load(
+              baseUrl + texturePath + "rosewood_veneer1_diff_4k.jpg",
+              (texture) => {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(0.06, 0.06);
+                texture.flipY = false;
+                material.map = texture;
+                mesh.material = material;
+              }
+            );
+          } else {
+            // Handle the standard JPG-based texture sets
+            const suffix = texturePath
+              .split("/")
+              .pop()
+              .replace(/[^a-zA-Z0-9]/g, "_");
+
+            textureLoader.load(
+              baseUrl + texturePath + suffix + "_col.jpg",
+              (texture) => {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(0.06, 0.06);
+                texture.flipY = false;
+                material.map = texture;
+                mesh.material = material;
+              }
+            );
+
+            textureLoader.load(
+              baseUrl + texturePath + suffix + "_rough.jpg",
+              (texture) => {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(0.06, 0.06);
+                texture.flipY = false;
+                material.roughnessMap = texture;
+              }
+            );
+
+            textureLoader.load(
+              baseUrl + texturePath + suffix + "_nrm.jpg",
+              (texture) => {
+                texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+                texture.repeat.set(0.06, 0.06);
+                texture.flipY = false;
+                material.normalMap = texture;
+              }
+            );
+          }
+        } catch (error) {
+          console.error("Error updating mesh material:", error);
+        }
       }
 
       function toggleAutoRotate() {
