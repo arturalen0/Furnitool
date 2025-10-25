@@ -1,29 +1,19 @@
-# 3D Couch Configurator with AR Support
+# 3D Couch Configurator
 
-A professional 3D furniture configurator that allows users to customize couch materials on desktop and view them in AR on mobile devices.
+A professional 3D furniture configurator that allows users to customize couch materials and switch between different couch models.
 
 ## Features
 
-### Desktop Experience
-
-- **Real-time 3D Configurator** - Interactive Three.js-powered 3D model
+- **Real-time 3D Configurator** - Interactive Three.js-powered 3D models
+- **Model Selection** - Choose from 13 different couch models
 - **Material Customization** - Choose from multiple fabric, stitch, and leg options
 - **Professional Lighting** - Cinema-quality lighting with shadows and effects
 - **Smooth Controls** - Professional camera controls with constraints
-- **QR Code Generation** - Real-time QR codes for mobile AR viewing
-
-### Mobile AR Experience
-
-- **AR Viewer** - View configured couch in your actual space
-- **Cross-platform** - Works on iOS (ARKit) and Android (ARCore)
-- **Configuration Sync** - Maintains exact material selections from desktop
-- **Share Functionality** - Share configurations with others
+- **Dynamic Model Loading** - Switch between different couch models instantly
 
 ## Technology Stack
 
 - **Three.js** - 3D rendering and controls
-- **Model-viewer** - AR functionality
-- **WebXR** - AR standards compliance
 - **Vanilla JavaScript** - No framework dependencies
 - **GLB/GLTF** - 3D model format
 
@@ -59,24 +49,17 @@ couch-configurator/
 
 ## Usage
 
-1. **Configure on Desktop** - Select materials using the control panel
-2. **Generate QR Code** - QR code updates automatically with selections
-3. **Scan with Mobile** - Use phone camera to scan QR code
-4. **View in AR** - Tap "View in AR" to place couch in your space
+1. **Select Model** - Choose from 13 different couch models using the dropdown
+2. **Configure Materials** - Select fabric, stitch color, and leg materials
+3. **Real-time Preview** - See changes applied instantly to the 3D model
+4. **Professional Controls** - Use mouse/trackpad to rotate, zoom, and pan
 
 ## Browser Support
-
-### Desktop
 
 - Chrome 90+
 - Firefox 88+
 - Safari 14+
 - Edge 90+
-
-### Mobile AR
-
-- iOS 12+ (Safari with ARKit)
-- Android 8+ (Chrome with ARCore)
 
 ## Performance
 

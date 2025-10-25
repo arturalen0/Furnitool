@@ -42,38 +42,6 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
 
-      #qr-container {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: rgba(255, 255, 255, 0.95);
-        padding: 15px;
-        border-radius: 10px;
-        z-index: 10;
-        backdrop-filter: blur(5px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        text-align: center;
-        max-width: 200px;
-      }
-
-      #qr-code {
-        width: 150px;
-        height: 150px;
-        margin: 10px 0;
-      }
-
-      #qr-container h4 {
-        margin: 0 0 10px 0;
-        font-size: 14px;
-        color: #333;
-      }
-
-      #qr-container p {
-        margin: 10px 0 0 0;
-        font-size: 12px;
-        color: #666;
-        line-height: 1.4;
-      }
       .control-group {
         margin-bottom: 10px;
       }
@@ -92,6 +60,10 @@
   <body>
     <div id="ui-container">
       <div class="control-group">
+        <label for="model-select">Couch Model:</label>
+        <select id="model-select"></select>
+      </div>
+      <div class="control-group">
         <label for="fabric-select">Fabric Material:</label>
         <select id="fabric-select"></select>
       </div>
@@ -103,28 +75,23 @@
         <label for="legs-select">Legs Material:</label>
         <select id="legs-select"></select>
       </div>
+      <div class="control-group">
+        <label>Current Model:</label>
+        <div
+          id="model-indicator"
+          style="
+            font-size: 12px;
+            color: #666;
+            padding: 5px;
+            background: #f0f0f0;
+            border-radius: 4px;
+          "
+        >
+          Loading...
+        </div>
+      </div>
     </div>
 
-    <div id="qr-container">
-      <h4>View in AR</h4>
-      <div id="qr-code"></div>
-      <p>Scan with your phone to see this couch in AR</p>
-      <button
-        onclick="updateQRCode()"
-        style="
-          margin-top: 10px;
-          padding: 5px 10px;
-          background: #007acc;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 12px;
-        "
-      >
-        Regenerate QR
-      </button>
-    </div>
     <canvas id="c"></canvas>
 
     <!-- Import Three.js and necessary loaders -->
@@ -146,8 +113,98 @@
 
       // ##### CONFIGURATION #####
 
-      // 1. Path to your main GLB model
-      const MODEL_PATH = "couch.glb";
+      // 1. Available couch models with descriptions
+      const MODEL_OPTIONS = [
+        {
+          name: "S77-1CL2SDR",
+          path: "glb/S77-1CL2SDR.glb",
+          description: "Classic 2-Seater with Wood Legs",
+        },
+        {
+          name: "S77-2CL2D",
+          path: "glb/S77-2CL2D.glb",
+          description: "Premium 2-Seater with Wood Base",
+        },
+        {
+          name: "S77-1F",
+          path: "glb/S77-1F.glb",
+          description: "Compact Single with Wood Frame",
+        },
+        {
+          name: "S77-2SDL1CR",
+          path: "glb/S77-2SDL1CR.glb",
+          description: "Modern 2-Seater with Metal Legs",
+        },
+        {
+          name: "S77-2D2CR",
+          path: "glb/S77-2D2CR.glb",
+          description: "Deluxe 2-Seater with Chrome Base",
+        },
+        {
+          name: "S77-2SDL2CR1",
+          path: "glb/S77-2SDL2CR1.glb",
+          description: "Luxury 2-Seater with Metal Frame",
+        },
+        {
+          name: "S77-2SDL2CR1CR",
+          path: "glb/S77-2SDL2CR1CR.glb",
+          description: "Executive 2-Seater with Chrome Details",
+        },
+        {
+          name: "S77-12CL2SDR",
+          path: "glb/S77-12CL2SDR.glb",
+          description: "Large 3-Seater with Wood Legs",
+        },
+        {
+          name: "S77-1CL2СL2SDR",
+          path: "glb/S77-1CL2СL2SDR.glb",
+          description: "Extended 2-Seater Configuration",
+        },
+        {
+          name: "S77-1D2",
+          path: "glb/S77-1D2.glb",
+          description: "Minimalist Single Seater",
+        },
+        {
+          name: "S77-21D",
+          path: "glb/S77-21D.glb",
+          description: "Compact 2-Seater Design",
+        },
+        {
+          name: "S77-KT1",
+          path: "glb/S77-KT1.glb",
+          description: "Corner Table Accessory",
+        },
+        {
+          name: "S77-P1",
+          path: "glb/S77-P1.glb",
+          description: "Ottoman/Footrest",
+        },
+      ];
+
+      let currentModelPath = MODEL_OPTIONS[0].path;
+
+      // Function to get the current selected model path
+      function getCurrentModelPath() {
+        const modelSelect = document.getElementById("model-select");
+        if (modelSelect && modelSelect.value) {
+          const selectedModel = MODEL_OPTIONS.find(
+            (model) => model.name === modelSelect.value
+          );
+          return selectedModel ? selectedModel.path : MODEL_OPTIONS[0].path;
+        }
+        return currentModelPath;
+      }
+
+      // Function to update the model indicator
+      function updateModelIndicator(modelPath) {
+        const indicator = document.getElementById("model-indicator");
+        if (indicator) {
+          const modelName = modelPath.split("/").pop().replace(".glb", "");
+          indicator.textContent = modelName;
+          indicator.style.color = "#007acc";
+        }
+      }
 
       // 2. Universal component detection - automatically finds meshes by name patterns
       // These will be populated automatically when the model loads
@@ -498,63 +555,109 @@
       }
 
       const gltfLoader = new GLTFLoader();
-      gltfLoader.load(
-        MODEL_PATH,
-        (gltf) => {
-          console.log("Model loaded successfully:", MODEL_PATH);
-          const model = gltf.scene;
+      let currentModel = null;
 
-          // Universal component detection - automatically categorize meshes by name patterns
-          model.traverse((child) => {
-            if (child.isMesh) {
-              // Enable shadows for all meshes
-              child.castShadow = true;
-              child.receiveShadow = true;
+      function loadModel(modelPath) {
+        console.log("🔄 Loading model:", modelPath);
 
-              const meshName = child.name.toLowerCase();
+        // Show loading state
+        const indicator = document.getElementById("model-indicator");
+        if (indicator) {
+          indicator.textContent = "Loading model...";
+          indicator.style.color = "#ff9500";
+        }
 
-              if (meshName.includes("body")) {
-                bodyMeshes.push(child);
-                console.log(`Found body mesh: ${child.name}`);
-              } else if (meshName.includes("plane")) {
-                planeMeshes.push(child);
-                console.log(`Found plane mesh: ${child.name}`);
-              } else if (meshName.includes("stitch")) {
-                stitchMeshes.push(child);
-                console.log(`Found stitch mesh: ${child.name}`);
-              } else if (meshName.includes("legs")) {
-                legsMeshes.push(child);
-                console.log(`Found legs mesh: ${child.name}`);
+        // Remove existing model if any
+        if (currentModel) {
+          scene.remove(currentModel);
+          currentModel = null;
+          // Clear mesh arrays
+          bodyMeshes.length = 0;
+          planeMeshes.length = 0;
+          stitchMeshes.length = 0;
+          legsMeshes.length = 0;
+        }
+
+        gltfLoader.load(
+          modelPath,
+          (gltf) => {
+            console.log("Model loaded successfully:", modelPath);
+            const model = gltf.scene;
+            currentModel = model;
+
+            // Universal component detection - automatically categorize meshes by name patterns
+            model.traverse((child) => {
+              if (child.isMesh) {
+                // Enable shadows for all meshes
+                child.castShadow = true;
+                child.receiveShadow = true;
+
+                const meshName = child.name.toLowerCase();
+
+                if (meshName.includes("body")) {
+                  bodyMeshes.push(child);
+                  console.log(`Found body mesh: ${child.name}`);
+                } else if (meshName.includes("plane")) {
+                  planeMeshes.push(child);
+                  console.log(`Found plane mesh: ${child.name}`);
+                } else if (meshName.includes("stitch")) {
+                  stitchMeshes.push(child);
+                  console.log(`Found stitch mesh: ${child.name}`);
+                } else if (meshName.includes("legs")) {
+                  legsMeshes.push(child);
+                  console.log(`Found legs mesh: ${child.name}`);
+                }
               }
-            }
-          });
+            });
 
-          console.log(`Component detection complete:
+            console.log(`Component detection complete:
           - Body meshes: ${bodyMeshes.length}
           - Plane meshes: ${planeMeshes.length}
           - Stitch meshes: ${stitchMeshes.length}
           - Legs meshes: ${legsMeshes.length}`);
 
-          scene.add(model);
-          console.log("Model added to scene");
-          updateMaterials();
-          frameObject(model);
-        },
-        (progress) => {
-          console.log(
-            "Loading progress:",
-            (progress.loaded / progress.total) * 100 + "%"
-          );
-        },
-        (error) => {
-          console.error("Error loading model:", error);
-          console.error("Model path:", MODEL_PATH);
-        }
-      );
+            scene.add(model);
+            console.log("✅ Model added to scene");
 
+            // Update model indicator
+            const indicator = document.getElementById("model-indicator");
+            if (indicator) {
+              const modelName = modelPath.split("/").pop().replace(".glb", "");
+              indicator.textContent = modelName;
+              indicator.style.color = "#28a745";
+            }
+
+            updateMaterials();
+            frameObject(model);
+          },
+          (progress) => {
+            console.log(
+              "Loading progress:",
+              (progress.loaded / progress.total) * 100 + "%"
+            );
+          },
+          (error) => {
+            console.error("Error loading model:", error);
+            console.error("Model path:", modelPath);
+          }
+        );
+      }
+
+      // Load initial model
+      loadModel(currentModelPath);
+
+      const modelSelect = document.getElementById("model-select");
       const fabricSelect = document.getElementById("fabric-select");
       const stitchSelect = document.getElementById("stitch-select");
       const legsSelect = document.getElementById("legs-select");
+
+      // Populate model options
+      MODEL_OPTIONS.forEach((model) => {
+        const option = document.createElement("option");
+        option.value = model.name;
+        option.textContent = `${model.name} - ${model.description}`;
+        modelSelect.appendChild(option);
+      });
 
       // Populate fabric options for body/plane
       FABRIC_OPTIONS.forEach((opt) => {
@@ -585,7 +688,18 @@
         const selectedStitchName = stitchSelect.value;
         const selectedLegsName = legsSelect.value;
 
-        // Get material data
+        // Model is now selected manually, just apply materials to current model
+        console.log(
+          "✅ Applying materials to current model:",
+          currentModelPath
+        );
+        console.log("📋 Configuration:", {
+          fabric: selectedFabricName,
+          stitch: selectedStitchName,
+          legs: selectedLegsName,
+        });
+
+        // Apply materials to current model (if textures need adjustment)
         const fabricData = FABRIC_OPTIONS.find(
           (opt) => opt.name === selectedFabricName
         );
@@ -597,7 +711,7 @@
         );
 
         // Apply fabric material to body meshes
-        if (fabricData) {
+        if (fabricData && bodyMeshes.length > 0) {
           const bodyMaterial = createPbrMaterial(fabricData.maps);
           bodyMeshes.forEach((mesh) => (mesh.material = bodyMaterial));
 
@@ -606,119 +720,36 @@
         }
 
         // Apply stitch material (separate fabric choice)
-        if (stitchData) {
+        if (stitchData && stitchMeshes.length > 0) {
           const stitchMaterial = createPbrMaterial(stitchData.maps);
           stitchMeshes.forEach((mesh) => (mesh.material = stitchMaterial));
         }
 
         // Apply legs material
-        if (legsData) {
+        if (legsData && legsMeshes.length > 0) {
           const legsMaterial = createPbrMaterial(legsData.maps);
           legsMeshes.forEach((mesh) => (mesh.material = legsMaterial));
         }
       }
 
+      modelSelect.addEventListener("change", () => {
+        const newModelPath = getCurrentModelPath();
+        if (newModelPath !== currentModelPath) {
+          currentModelPath = newModelPath;
+          console.log("🔄 User selected different model:", currentModelPath);
+          loadModel(currentModelPath);
+        }
+      });
+
       fabricSelect.addEventListener("change", () => {
         updateMaterials();
-        updateQRCode();
       });
       stitchSelect.addEventListener("change", () => {
         updateMaterials();
-        updateQRCode();
       });
       legsSelect.addEventListener("change", () => {
         updateMaterials();
-        updateQRCode();
       });
-
-      // Generate initial QR code with delay to ensure DOM is ready
-      setTimeout(() => {
-        console.log("Attempting to generate initial QR code...");
-        updateQRCode();
-      }, 1000);
-
-      function updateQRCode() {
-        console.log("updateQRCode function called");
-
-        const qrContainer = document.getElementById("qr-code");
-        console.log("QR container found:", !!qrContainer);
-
-        if (!qrContainer) {
-          console.error("QR container not found");
-          return;
-        }
-
-        // First, let's just show a test message to confirm the container works
-        qrContainer.innerHTML = `
-          <div style="width: 150px; height: 150px; background: #e6f3ff; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #007acc; text-align: center; font-size: 12px; color: #007acc; padding: 10px; box-sizing: border-box; border-radius: 8px;">
-            <div style="margin-bottom: 8px;">🔄 QR Test</div>
-            <div style="font-size: 10px;">Function Working!</div>
-          </div>
-        `;
-
-        const currentConfig = {
-          fabric: fabricSelect.value || "Cloud",
-          stitch: stitchSelect.value || "Cloud",
-          legs: legsSelect.value || "Rosewood Veneer",
-        };
-
-        console.log("Current config:", currentConfig);
-
-        // Create URL with configuration parameters
-        const baseUrl =
-          window.location.origin +
-          window.location.pathname.replace("index.html", "");
-        const arUrl = `${baseUrl}ar-viewer.html?fabric=${encodeURIComponent(
-          currentConfig.fabric
-        )}&stitch=${encodeURIComponent(
-          currentConfig.stitch
-        )}&legs=${encodeURIComponent(currentConfig.legs)}`;
-
-        console.log("AR URL:", arUrl);
-
-        // Try a simple QR API first
-        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-          arUrl
-        )}`;
-        console.log("QR API URL:", qrApiUrl);
-
-        // Show loading state
-        setTimeout(() => {
-          qrContainer.innerHTML = `
-            <div style="width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666; background: #f9f9f9; border-radius: 8px; border: 1px solid #ddd;">
-              Loading QR...
-            </div>
-          `;
-
-          // Create QR code image
-          const qrImg = new Image();
-          qrImg.crossOrigin = "anonymous"; // Try to avoid CORS issues
-
-          qrImg.onload = function () {
-            console.log("QR Code image loaded successfully!");
-            qrContainer.innerHTML = "";
-            qrImg.style.width = "150px";
-            qrImg.style.height = "150px";
-            qrImg.style.borderRadius = "8px";
-            qrImg.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
-            qrImg.style.border = "1px solid #ddd";
-            qrContainer.appendChild(qrImg);
-          };
-
-          qrImg.onerror = function (e) {
-            console.error("QR Code image failed to load:", e);
-            qrContainer.innerHTML = `
-              <div style="width: 150px; height: 150px; background: #ffe6e6; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid #ff9999; text-align: center; font-size: 11px; color: #cc0000; padding: 10px; box-sizing: border-box; border-radius: 8px;">
-                <div style="margin-bottom: 8px;">❌ QR Failed</div>
-                <a href="${arUrl}" target="_blank" style="color: #007acc; text-decoration: none; font-size: 10px; padding: 4px 8px; background: #e6f3ff; border-radius: 4px;">Open AR Link</a>
-              </div>
-            `;
-          };
-
-          console.log("Setting image source...");
-          qrImg.src = qrApiUrl;
-        }, 500);
-      }
 
       function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;

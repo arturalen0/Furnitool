@@ -2,16 +2,7 @@
   "buildCommand": null,
   "outputDirectory": ".",
   "installCommand": null,
-  "rewrites": [
-    {
-      "source": "/ar",
-      "destination": "/ar-viewer.html"
-    },
-    {
-      "source": "/model-viewer",
-      "destination": "/model-viewer-version.html"
-    }
-  ],
+
   "headers": [
     {
       "source": "/(.*)\\.(glb|gltf)$",
