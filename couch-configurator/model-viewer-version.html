@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Couch Configurator - Model Viewer</title>
+    <script
+      type="module"
+      src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+    ></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: sans-serif;
+        background: #f0f0f0;
+      }
+
+      model-viewer {
+        width: 100vw;
+        height: 100vh;
+        background-color: #ffffff;
+      }
+
+      #controls {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+        z-index: 100;
+        min-width: 250px;
+      }
+
+      .control-group {
+        margin-bottom: 15px;
+      }
+
+      .control-group:last-child {
+        margin-bottom: 0;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+      }
+
+      select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        background: white;
+        font-size: 14px;
+        cursor: pointer;
+        transition: border-color 0.3s ease;
+      }
+
+      select:hover {
+        border-color: #007acc;
+      }
+
+      select:focus {
+        outline: none;
+        border-color: #007acc;
+        box-shadow: 0 0 0 3px rgba(0, 122, 204, 0.1);
+      }
+
+      .feature-buttons {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+        z-index: 100;
+      }
+
+      .feature-btn {
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.95);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+      }
+
+      .feature-btn:hover {
+        background: #007acc;
+        color: white;
+        transform: translateY(-2px);
+      }
+
+      .ar-button {
+        background: #4caf50 !important;
+        color: white;
+      }
+
+      .ar-button:hover {
+        background: #45a049 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <model-viewer
+      id="couch-viewer"
+      src="couch.glb"
+      alt="3D Couch Configurator"
+      auto-rotate
+      camera-controls
+      shadow-intensity="1.2"
+      shadow-softness="0.8"
+      exposure="1.2"
+      environment-image="neutral"
+      skybox-image="neutral"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      ar-scale="auto"
+      camera-orbit="45deg 75deg 3m"
+      min-camera-orbit="auto auto 1.5m"
+      max-camera-orbit="auto auto 8m"
+      min-field-of-view="25deg"
+      max-field-of-view="75deg"
+      interpolation-decay="200"
+      loading="eager"
+    >
+      <!-- Loading indicator -->
+      <div
+        slot="progress-bar"
+        style="
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: #666;
+        "
+      >
+        Loading 3D Model...
+      </div>
+
+      <!-- AR prompt -->
+      <div slot="ar-button" class="ar-button feature-btn">View in AR</div>
+    </model-viewer>
+
+    <div id="controls">
+      <h3 style="margin-bottom: 15px; color: #333; font-size: 18px">
+        Couch Configurator
+      </h3>
+
+      <div class="control-group">
+        <label for="fabric-select">Fabric Material:</label>
+        <select id="fabric-select">
+          <option value="cloud">Cloud</option>
+          <option value="limestone">Limestone</option>
+          <option value="flax">Flax</option>
+          <option value="bonbon">Bonbon</option>
+          <option value="rough">Rough Sofa Fabric</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="stitch-select">Stitch Color:</label>
+        <select id="stitch-select">
+          <option value="cloud">Cloud</option>
+          <option value="limestone">Limestone</option>
+          <option value="flax">Flax</option>
+          <option value="bonbon">Bonbon</option>
+          <option value="rough">Rough Sofa Fabric</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="legs-select">Legs Material:</label>
+        <select id="legs-select">
+          <option value="rosewood">Rosewood Veneer</option>
+          <option value="metal">Polished Metal</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="feature-buttons">
+      <button class="feature-btn" onclick="toggleAutoRotate()">
+        Toggle Rotation
+      </button>
+      <button class="feature-btn" onclick="resetCamera()">Reset View</button>
+    </div>
+
+    <script>
+      const modelViewer = document.getElementById("couch-viewer");
+
+      // Material configuration mapping
+      const fabricTextures = {
+        cloud:
+          "textures/fabrics/twinbru_Sabato_28-Cloud_78bc31df720040f98507df3a952a4264/",
+        limestone:
+          "textures/fabrics/twinbru_Sabato_01-Limestone_dcdf6528525142e98efbccff9cd72c74/",
+        flax: "textures/fabrics/twinbru_Sabato_06-Flax_7932749150ae466099eb91ff8fc2909c/",
+        bonbon:
+          "textures/fabrics/twinbru_Sabato_17-Bonbon_5f4a348fcb2444bb91a9fcb93c3de7c6/",
+        rough: "textures/fabrics/rough-sofa-fabric-bl/",
+      };
+
+      const legTextures = {
+        rosewood: "textures/legs/rosewood_veneer1_4k.blend/",
+        metal: "textures/legs/PolishedMetal/",
+      };
+
+      // Wait for model to load
+      modelViewer.addEventListener("load", () => {
+        console.log("Model loaded successfully!");
+        setupMaterialControls();
+      });
+
+      function setupMaterialControls() {
+        const fabricSelect = document.getElementById("fabric-select");
+        const stitchSelect = document.getElementById("stitch-select");
+        const legsSelect = document.getElementById("legs-select");
+
+        fabricSelect.addEventListener("change", updateMaterials);
+        stitchSelect.addEventListener("change", updateMaterials);
+        legsSelect.addEventListener("change", updateMaterials);
+
+        // Initial material setup
+        updateMaterials();
+      }
+
+      function updateMaterials() {
+        // Note: Model-viewer has limited material editing capabilities
+        // For full material control, you'd need to use the Three.js approach
+        console.log("Material update requested");
+        console.log("Fabric:", document.getElementById("fabric-select").value);
+        console.log("Stitch:", document.getElementById("stitch-select").value);
+        console.log("Legs:", document.getElementById("legs-select").value);
+      }
+
+      function toggleAutoRotate() {
+        modelViewer.autoRotate = !modelViewer.autoRotate;
+      }
+
+      function resetCamera() {
+        modelViewer.cameraOrbit = "45deg 75deg 3m";
+        modelViewer.fieldOfView = "45deg";
+      }
+
+      // AR support detection
+      if (modelViewer.canActivateAR) {
+        console.log("AR is supported on this device!");
+      }
+    </script>
+  </body>
+</html>

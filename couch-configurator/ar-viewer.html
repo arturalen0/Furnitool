@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Couch AR Viewer</title>
+    <script
+      type="module"
+      src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"
+    ></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        background: #000;
+        overflow: hidden;
+      }
+
+      model-viewer {
+        width: 100vw;
+        height: 100vh;
+        background-color: transparent;
+      }
+
+      #config-info {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 15px;
+        border-radius: 12px;
+        backdrop-filter: blur(10px);
+        z-index: 100;
+        text-align: center;
+      }
+
+      #config-info h2 {
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+
+      #config-info p {
+        font-size: 14px;
+        opacity: 0.9;
+        margin: 5px 0;
+      }
+
+      .ar-button {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #007aff;
+        color: white;
+        border: none;
+        padding: 16px 32px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(0, 122, 255, 0.4);
+        transition: all 0.3s ease;
+        z-index: 100;
+      }
+
+      .ar-button:hover {
+        background: #0056cc;
+        transform: translateX(-50%) translateY(-2px);
+        box-shadow: 0 6px 25px rgba(0, 122, 255, 0.5);
+      }
+
+      .ar-button:active {
+        transform: translateX(-50%) translateY(0px);
+      }
+
+      #loading {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        text-align: center;
+        z-index: 50;
+      }
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top: 4px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .feature-buttons {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        z-index: 100;
+      }
+
+      .feature-btn {
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        min-width: 80px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+      }
+
+      .feature-btn:hover {
+        background: rgba(255, 255, 255, 1);
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>Loading your configured couch...</p>
+    </div>
+
+    <div id="config-info" style="display: none">
+      <h2>Your Configured Couch</h2>
+      <p id="fabric-info">Fabric: Loading...</p>
+      <p id="stitch-info">Stitch: Loading...</p>
+      <p id="legs-info">Legs: Loading...</p>
+    </div>
+
+    <model-viewer
+      id="couch-ar-viewer"
+      src="couch.glb"
+      alt="Configured Couch in AR"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      ar-scale="auto"
+      camera-controls
+      auto-rotate
+      shadow-intensity="1"
+      shadow-softness="0.5"
+      exposure="1"
+      environment-image="neutral"
+      camera-orbit="45deg 75deg 2.5m"
+      min-camera-orbit="auto auto 1m"
+      max-camera-orbit="auto auto 6m"
+      interaction-prompt="auto"
+      loading="eager"
+      reveal="auto"
+    >
+      <button slot="ar-button" class="ar-button">👁️ View in AR</button>
+    </model-viewer>
+
+    <div class="feature-buttons">
+      <button class="feature-btn" onclick="toggleAutoRotate()">⟲ Rotate</button>
+      <button class="feature-btn" onclick="resetView()">🎯 Reset</button>
+      <button class="feature-btn" onclick="shareConfig()">📤 Share</button>
+    </div>
+
+    <script>
+      const modelViewer = document.getElementById("couch-ar-viewer");
+      const loadingDiv = document.getElementById("loading");
+      const configInfo = document.getElementById("config-info");
+
+      // Parse URL parameters to get configuration
+      const urlParams = new URLSearchParams(window.location.search);
+      const config = {
+        fabric: urlParams.get("fabric") || "Cloud",
+        stitch: urlParams.get("stitch") || "Cloud",
+        legs: urlParams.get("legs") || "Rosewood Veneer",
+      };
+
+      // Update configuration display
+      document.getElementById(
+        "fabric-info"
+      ).textContent = `Fabric: ${config.fabric}`;
+      document.getElementById(
+        "stitch-info"
+      ).textContent = `Stitch: ${config.stitch}`;
+      document.getElementById("legs-info").textContent = `Legs: ${config.legs}`;
+
+      // Show configuration info
+      configInfo.style.display = "block";
+
+      // Handle model loading
+      modelViewer.addEventListener("load", () => {
+        console.log("AR model loaded with config:", config);
+        loadingDiv.style.display = "none";
+
+        // Apply configuration (in a real implementation, you'd modify materials here)
+        applyConfiguration(config);
+      });
+
+      modelViewer.addEventListener("error", (error) => {
+        console.error("Model loading error:", error);
+        loadingDiv.innerHTML =
+          '<p style="color: red;">Failed to load 3D model</p>';
+      });
+
+      function applyConfiguration(config) {
+        // Note: Model-viewer has limited material editing capabilities
+        // In a production app, you might:
+        // 1. Have pre-configured GLB files for each combination
+        // 2. Use Three.js underneath model-viewer for material changes
+        // 3. Generate the GLB server-side with the correct materials
+
+        console.log("Applying configuration:", config);
+
+        // For now, we'll just log the configuration
+        // In a real implementation, you'd modify the model's materials here
+      }
+
+      function toggleAutoRotate() {
+        modelViewer.autoRotate = !modelViewer.autoRotate;
+      }
+
+      function resetView() {
+        modelViewer.cameraOrbit = "45deg 75deg 2.5m";
+        modelViewer.fieldOfView = "45deg";
+      }
+
+      function shareConfig() {
+        if (navigator.share) {
+          navigator.share({
+            title: "Check out this couch configuration!",
+            text: `Fabric: ${config.fabric}, Stitch: ${config.stitch}, Legs: ${config.legs}`,
+            url: window.location.href,
+          });
+        } else {
+          // Fallback: copy to clipboard
+          navigator.clipboard.writeText(window.location.href).then(() => {
+            alert("Configuration link copied to clipboard!");
+          });
+        }
+      }
+
+      // Auto-hide config info after 5 seconds
+      setTimeout(() => {
+        configInfo.style.opacity = "0";
+        configInfo.style.transition = "opacity 0.5s ease";
+      }, 5000);
+
+      // Show config info on tap
+      document.addEventListener("click", () => {
+        if (configInfo.style.opacity === "0") {
+          configInfo.style.opacity = "1";
+          setTimeout(() => {
+            configInfo.style.opacity = "0";
+          }, 3000);
+        }
+      });
+    </script>
+  </body>
+</html>
